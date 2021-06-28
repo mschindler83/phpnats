@@ -1,4 +1,5 @@
 <?php
+
 namespace Nats;
 
 use Traversable;
@@ -82,22 +83,11 @@ class ConnectionOptions
     private $reconnect = true;
 
     /**
-     * Allows to define parameters which can be set by passing them to the class constructor.
+     * Stream context to use.
      *
-     * @var array
+     * @var resource
      */
-    private $configurable = [
-                             'host',
-                             'port',
-                             'user',
-                             'pass',
-                             'token',
-                             'lang',
-                             'version',
-                             'verbose',
-                             'pedantic',
-                             'reconnect',
-                            ];
+    private $streamContext = null;
 
 
     /**
@@ -120,6 +110,8 @@ class ConnectionOptions
      */
     public function __construct($options = null)
     {
+        //Default stream context
+        $this->streamContext = stream_context_get_default();
         if (empty($options) === false) {
             $this->initialize($options);
         }
@@ -135,7 +127,6 @@ class ConnectionOptions
         return 'tcp://'.$this->host.':'.$this->port;
     }
 
-
     /**
      * Get the options JSON string.
      *
@@ -144,26 +135,22 @@ class ConnectionOptions
     public function __toString()
     {
         $a = [
-              'lang'     => $this->lang,
-              'version'  => $this->version,
-              'verbose'  => $this->verbose,
-              'pedantic' => $this->pedantic,
-             ];
+            'lang'=> $this->lang,
+            'version' => $this->version,
+            'verbose' => $this->verbose,
+            'pedantic' => $this->pedantic,
+        ];
         if (empty($this->user) === false) {
             $a['user'] = $this->user;
         }
-
         if (empty($this->pass) === false) {
             $a['pass'] = $this->pass;
         }
-
         if (empty($this->token) === false) {
             $a['auth_token'] = $this->token;
         }
-
         return json_encode($a);
     }
-
 
     /**
      * Get host.
@@ -175,7 +162,6 @@ class ConnectionOptions
         return $this->host;
     }
 
-
     /**
      * Set host.
      *
@@ -186,7 +172,6 @@ class ConnectionOptions
     public function setHost($host)
     {
         $this->host = $host;
-
         return $this;
     }
 
@@ -212,7 +197,6 @@ class ConnectionOptions
     public function setPort($port)
     {
         $this->port = $port;
-
         return $this;
     }
 
@@ -238,7 +222,6 @@ class ConnectionOptions
     public function setUser($user)
     {
         $this->user = $user;
-
         return $this;
     }
 
@@ -263,7 +246,6 @@ class ConnectionOptions
     public function setPass($pass)
     {
         $this->pass = $pass;
-
         return $this;
     }
 
@@ -287,7 +269,6 @@ class ConnectionOptions
     public function setToken($token)
     {
         $this->token = $token;
-
         return $this;
     }
 
@@ -306,13 +287,11 @@ class ConnectionOptions
      * Set language.
      *
      * @param string $lang Language.
-     *
      * @return $this
      */
     public function setLang($lang)
     {
         $this->lang = $lang;
-
         return $this;
     }
 
@@ -332,13 +311,11 @@ class ConnectionOptions
      * Set version.
      *
      * @param string $version Version number.
-     *
      * @return $this
      */
     public function setVersion($version)
     {
         $this->version = $version;
-
         return $this;
     }
 
@@ -358,13 +335,11 @@ class ConnectionOptions
      * Set verbose.
      *
      * @param boolean $verbose Verbose flag.
-     *
      * @return $this
      */
     public function setVerbose($verbose)
     {
         $this->verbose = $verbose;
-
         return $this;
     }
 
@@ -384,13 +359,11 @@ class ConnectionOptions
      * Set pedantic.
      *
      * @param boolean $pedantic Pedantic flag.
-     *
      * @return $this
      */
     public function setPedantic($pedantic)
     {
         $this->pedantic = $pedantic;
-
         return $this;
     }
 
@@ -410,13 +383,33 @@ class ConnectionOptions
      * Set reconnect.
      *
      * @param boolean $reconnect Reconnect flag.
-     *
      * @return $this
      */
     public function setReconnect($reconnect)
     {
         $this->reconnect = $reconnect;
+        return $this;
+    }
 
+    /**
+     * Get stream context.
+     *
+     * @return resource
+     */
+    public function getStreamContext()
+    {
+        return $this->streamContext;
+    }
+
+    /**
+     * Set stream context.
+     *
+     * @param resource $streamContext Stream context.
+     * @return $this
+     */
+    public function setStreamContext($streamContext)
+    {
+        $this->streamContext = $streamContext;
         return $this;
     }
 
@@ -424,7 +417,6 @@ class ConnectionOptions
      * Set the connection options.
      *
      * @param Traversable|array $options The connection options.
-     *
      * @return void
      */
     public function setConnectionOptions($options)
@@ -435,26 +427,19 @@ class ConnectionOptions
     /**
      * Initialize the parameters.
      *
+     * @author ikubicki
      * @param Traversable|array $options The connection options.
-     *
      * @throws Exception When $options are an invalid type.
-     *
      * @return void
      */
     protected function initialize($options)
     {
-        if (is_array($options) === false && ($options instanceof Traversable) === false) {
-            throw new Exception('The $options argument must be either an array or Traversable');
+        if (is_iterable($options)) {
+            throw new Exception('The $options argument must be iterable!');
         }
-
         foreach ($options as $key => $value) {
-            if (in_array($key, $this->configurable, true) === false) {
-                continue;
-            }
-
-            $method = 'set'.ucfirst($key);
-
-            if (method_exists($this, $method) === true) {
+            if (property_exists($this, $key)) {
+                $method = 'set' . $key;
                 $this->$method($value);
             }
         }

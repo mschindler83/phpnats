@@ -1,11 +1,12 @@
 {
-    "name": "repejota/nats",
+    "name": "mschindler83/nats",
     "description": "A nats.io client in PHP",
     "type": "library",
     "minimum-stability": "dev",
     "license": "MIT",
+    "version": "2.2.3",
     "require": {
-        "ircmaxell/random-lib": "^1.2"
+        "php": ">7.1"
     },
     "require-dev": {
         "phpunit/phpunit": "5.*",
@@ -36,6 +37,12 @@
             "email": "glopezdetorre@gmail.com",
             "homepage": "http://gorka.io",
             "role": "Developer"
+        },
+        {
+            "name": "Irek Kubicki",
+            "email": "irekkubicki@workfront.com",
+            "homepage": "http://www.workfront.com",
+            "role": "Software Principal Engineer"
         }
     ],
     "autoload": {
